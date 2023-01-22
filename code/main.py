@@ -97,6 +97,12 @@ class PomodoroTimer:
         self.main_window["reset"].pack(side="left", padx=3)
         self.main_window["start_stop"].pack(side="left", padx=3)
 
+        # windowの最低サイズ変更
+        self.main_window["root"].update()
+        width = self.main_window["root"].winfo_width()
+        height = self.main_window["root"].winfo_height()
+        self.main_window["root"].minsize(width=width, height=height)
+
         # ウィンドウの表示開始
         self.main_window["root"].mainloop()
         self.running = False
