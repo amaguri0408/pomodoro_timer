@@ -1,19 +1,26 @@
+import time
 import tkinter as tk
 from tkinter import ttk
+import threading
 
 
 class PomodoroTimer:
     def __init__(self):
+        self.running = True
         self.main_time = 25 * 60 + 0
+        self.timer_flag = False
         self.phase_list = ["作業中", "休憩中"]
+        thread_timer = threading.Thread(target=self.timer_loop)
+        thread_timer.start()
         self.make_main_window()
+        thread_timer.join()
 
     def convert_time2str(self, t):
-        s = t % 60
+        s = int(t % 60)
         t //= 60
-        m = t % 60
+        m = int(t % 60)
         t //= 60
-        h = t
+        h = int(t)
         res = ""
         if h:
             res += str(h).zfill(2)
@@ -21,16 +28,32 @@ class PomodoroTimer:
         res += f"{str(m).zfill(2)}:{str(s).zfill(2)}"
         return res
 
+    def timer_loop(self):
+        while self.running:
+            if not self.timer_flag: continue
+            self.main_time -= 0.1
+            self.main_window["timer"].configure(text=self.convert_time2str(self.main_time))
+            time.sleep(0.1)
+
     def btn_reset(self):
-        pass
+        self.main_time = 25 * 60
+        self.timer_flag = False
+        self.main_window["start_stop"].configure(text="Start")
+        self.main_window["timer"].configure(text=self.convert_time2str(self.main_time))
 
     def btn_start_stop(self):
-        pass
+        if self.timer_flag:
+            self.timer_flag = False
+            self.main_window["start_stop"].configure(text="Start")
+        else:
+            self.timer_flag = True
+            self.main_window["start_stop"].configure(text="Stop")
     
     def make_main_window(self):
         self.main_window = dict()
         self.main_window["root"] = tk.Tk()
         self.main_window["root"].title('ポモドーロ・テクニックタイマー')
+        self.main_window["root"].attributes("-topmost", True)
         # self.main_window["root"].configure(bg="white")
 
         # ウィジェットの作成
@@ -56,14 +79,14 @@ class PomodoroTimer:
             text='Reset',
             width=4,
             font=("MSゴシック", 9),
-            command=self.btn_reset(),
+            command=self.btn_reset,
         )
         self.main_window["start_stop"] = tk.Button(
             self.main_window["btn_frame"],
             text='Start',
             width=4,
             font=("MSゴシック", 9),
-            command=self.btn_start_stop(),
+            command=self.btn_start_stop,
         )
 
         # レイアウト
@@ -76,7 +99,7 @@ class PomodoroTimer:
 
         # ウィンドウの表示開始
         self.main_window["root"].mainloop()
-
+        self.running = False
 
 
 def main():
