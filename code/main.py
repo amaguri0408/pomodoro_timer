@@ -1,8 +1,16 @@
 import time
+import threading
 import tkinter as tk
 from tkinter import ttk
-import threading
+from pathlib import Path
 
+try:
+    import pygame
+    pygame_available = True
+except ModuleNotFoundError:
+    pygame_available = False    
+
+pygame.init()
 
 class PomodoroTimer:
     def __init__(self):
@@ -10,6 +18,8 @@ class PomodoroTimer:
         self.time_list = [5, 3]
         self.phase = 0
         self.main_time = self.time_list[self.phase]
+        self.audio_dir = Path("audio")
+        self.audio_list = ["鳩時計2.mp3", "目覚まし時計のアラーム.mp3"]
         self.timer_flag = False
         self.phase_list = ["作業中", "休憩中"]
         thread_timer = threading.Thread(target=self.timer_loop)
@@ -32,6 +42,10 @@ class PomodoroTimer:
         return res
 
     def next_phase(self):
+        if pygame_available:
+            pygame.mixer.init()
+            pygame.mixer.music.load(self.audio_dir / self.audio_list[self.phase])
+            pygame.mixer.music.play()
         self.phase = (self.phase + 1) % len(self.phase_list)
         self.main_time = self.time_list[self.phase]
         self.main_window["phase"].configure(text=self.phase_list[self.phase])
