@@ -48,13 +48,23 @@ class PomodoroTimer:
         else:
             self.timer_flag = True
             self.main_window["start_stop"].configure(text="Stop")
+
+    def on_move_press(self, event):
+        self.mouse_x = event.x_root - self.main_window["root"].winfo_x()
+        self.mouse_y = event.y_root - self.main_window["root"].winfo_y()
+
+    def on_move_motion(self, event):
+        self.main_window["root"].geometry(f"+{event.x_root - self.mouse_x}+{event.y_root - self.mouse_y}")
     
     def make_main_window(self):
         self.main_window = dict()
         self.main_window["root"] = tk.Tk()
         self.main_window["root"].title('ポモドーロ・テクニックタイマー')
         self.main_window["root"].attributes("-topmost", True)
-        # self.main_window["root"].configure(bg="white")
+
+        # windowの内部でドラッグ可能に
+        self.main_window["root"].bind("<Button-1>", self.on_move_press)
+        self.main_window["root"].bind("<B1-Motion>", self.on_move_motion)
 
         # ウィジェットの作成
         self.main_window["frame1"] = tk.Frame(self.main_window["root"], padx=10, pady=10)
