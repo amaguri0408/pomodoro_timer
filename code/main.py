@@ -7,7 +7,9 @@ import threading
 class PomodoroTimer:
     def __init__(self):
         self.running = True
-        self.main_time = 25 * 60 + 0
+        self.time_list = [5, 3]
+        self.phase = 0
+        self.main_time = self.time_list[self.phase]
         self.timer_flag = False
         self.phase_list = ["作業中", "休憩中"]
         thread_timer = threading.Thread(target=self.timer_loop)
@@ -16,6 +18,7 @@ class PomodoroTimer:
         thread_timer.join()
 
     def convert_time2str(self, t):
+        t += 0.99
         s = int(t % 60)
         t //= 60
         m = int(t % 60)
@@ -28,17 +31,27 @@ class PomodoroTimer:
         res += f"{str(m).zfill(2)}:{str(s).zfill(2)}"
         return res
 
+    def next_phase(self):
+        self.phase = (self.phase + 1) % len(self.phase_list)
+        self.main_time = self.time_list[self.phase]
+        self.main_window["phase"].configure(text=self.phase_list[self.phase])
+        self.main_window["timer"].configure(text=self.convert_time2str(self.main_time))
+
     def timer_loop(self):
         while self.running:
             if not self.timer_flag: continue
             self.main_time -= 0.1
+            if self.main_time <= 0:
+                self.next_phase()
             self.main_window["timer"].configure(text=self.convert_time2str(self.main_time))
             time.sleep(0.1)
 
     def btn_reset(self):
-        self.main_time = 25 * 60
+        self.phase = 0
+        self.main_time = self.time_list[self.phase]
         self.timer_flag = False
         self.main_window["start_stop"].configure(text="Start")
+        self.main_window["phase"].configure(text=self.phase_list[self.phase])
         self.main_window["timer"].configure(text=self.convert_time2str(self.main_time))
 
     def btn_start_stop(self):
@@ -71,7 +84,7 @@ class PomodoroTimer:
         self.main_window["phase"] = tk.Label(
             self.main_window["frame1"], 
             font=("MSゴシック", 10),
-            text=self.phase_list[0]
+            text=self.phase_list[self.phase]
         )
         
         # タイマー
