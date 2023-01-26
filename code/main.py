@@ -6,11 +6,12 @@ from pathlib import Path
 
 try:
     import pygame
+    pygame.init()
     pygame_available = True
 except ModuleNotFoundError:
     pygame_available = False    
 
-pygame.init()
+PYFILE_DIR = Path(__file__).parent
 
 class PomodoroTimer:
     def __init__(self):
@@ -18,14 +19,13 @@ class PomodoroTimer:
         self.time_list = [5, 3]
         self.phase = 0
         self.main_time = self.time_list[self.phase]
-        self.audio_dir = Path("audio")
+        self.audio_dir = PYFILE_DIR / "audio"
         self.audio_list = ["鳩時計2.mp3", "目覚まし時計のアラーム.mp3"]
         self.timer_flag = False
         self.phase_list = ["作業中", "休憩中"]
         thread_timer = threading.Thread(target=self.timer_loop)
         thread_timer.start()
         self.make_main_window()
-        thread_timer.join()
 
     def convert_time2str(self, t):
         t += 0.99
@@ -44,8 +44,11 @@ class PomodoroTimer:
     def next_phase(self):
         if pygame_available:
             pygame.mixer.init()
-            pygame.mixer.music.load(self.audio_dir / self.audio_list[self.phase])
-            pygame.mixer.music.play()
+            try:
+                pygame.mixer.music.load(self.audio_dir / self.audio_list[self.phase])
+                pygame.mixer.music.play()
+            except pygame.error as e:
+                print(e)
         self.phase = (self.phase + 1) % len(self.phase_list)
         self.main_time = self.time_list[self.phase]
         self.main_window["phase"].configure(text=self.phase_list[self.phase])
