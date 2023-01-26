@@ -1,5 +1,4 @@
 import time
-import threading
 import tkinter as tk
 from tkinter import ttk
 from pathlib import Path
@@ -23,12 +22,11 @@ class PomodoroTimer:
         self.audio_list = ["鳩時計2.mp3", "目覚まし時計のアラーム.mp3"]
         self.timer_flag = False
         self.phase_list = ["作業中", "休憩中"]
-        thread_timer = threading.Thread(target=self.timer_loop)
-        thread_timer.start()
         self.make_main_window()
 
     def convert_time2str(self, t):
-        t += 0.99
+        t += 0.999
+        # ms = int(t * 100 % 100)
         s = int(t % 60)
         t //= 60
         m = int(t % 60)
@@ -38,6 +36,7 @@ class PomodoroTimer:
         if h:
             res += str(h).zfill(2)
             res += ":"
+        # res += f"{str(m).zfill(2)}:{str(s).zfill(2)}.{str(ms).zfill(2)}"
         res += f"{str(m).zfill(2)}:{str(s).zfill(2)}"
         return res
 
@@ -50,18 +49,22 @@ class PomodoroTimer:
             except pygame.error as e:
                 print(e)
         self.phase = (self.phase + 1) % len(self.phase_list)
+        self.time_start = time.time()
         self.main_time = self.time_list[self.phase]
         self.main_window["phase"].configure(text=self.phase_list[self.phase])
         self.main_window["timer"].configure(text=self.convert_time2str(self.main_time))
 
     def timer_loop(self):
-        while self.running:
-            if not self.timer_flag: continue
-            self.main_time -= 0.1
-            if self.main_time <= 0:
-                self.next_phase()
-            self.main_window["timer"].configure(text=self.convert_time2str(self.main_time))
-            time.sleep(0.1)
+        if not self.timer_flag: 
+            self.main_window["root"].after(10, self.timer_loop)
+            return
+        now_time = self.main_time - (time.time() - self.time_start)
+        if now_time <= 0:
+            self.next_phase()
+            self.main_window["root"].after(10, self.timer_loop)
+            return
+        self.main_window["timer"].configure(text=self.convert_time2str(now_time))
+        self.main_window["root"].after(10, self.timer_loop)
 
     def btn_reset(self):
         self.phase = 0
@@ -72,10 +75,12 @@ class PomodoroTimer:
         self.main_window["timer"].configure(text=self.convert_time2str(self.main_time))
 
     def btn_start_stop(self):
-        if self.timer_flag:
+        if self.timer_flag:     # stopボタン押下
+            self.main_time -= (time.time() - self.time_start)
             self.timer_flag = False
             self.main_window["start_stop"].configure(text="Start")
-        else:
+        else:       # startボタン押下
+            self.time_start = time.time()
             self.timer_flag = True
             self.main_window["start_stop"].configure(text="Stop")
 
@@ -142,6 +147,9 @@ class PomodoroTimer:
         width = self.main_window["root"].winfo_width()
         height = self.main_window["root"].winfo_height()
         self.main_window["root"].minsize(width=width, height=height)
+
+        # タイマー関数呼び出し
+        self.main_window["root"].after(10, self.timer_loop)
 
         # ウィンドウの表示開始
         self.main_window["root"].mainloop()
