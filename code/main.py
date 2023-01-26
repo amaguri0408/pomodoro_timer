@@ -15,11 +15,13 @@ PYFILE_DIR = Path(__file__).parent
 class PomodoroTimer:
     def __init__(self):
         self.running = True
-        self.time_list = [5, 3]
+        self.time_list = [25 * 60, 5 * 60]
         self.phase = 0
         self.main_time = self.time_list[self.phase]
         self.audio_dir = PYFILE_DIR / "audio"
         self.audio_list = ["鳩時計2.mp3", "目覚まし時計のアラーム.mp3"]
+        self.image_dir = PYFILE_DIR / "image"
+        self.app_icon = self.image_dir / "トマトのアイコン4.ico"
         self.timer_flag = False
         self.phase_list = ["作業中", "休憩中"]
         self.make_main_window()
@@ -94,6 +96,7 @@ class PomodoroTimer:
     def make_main_window(self):
         self.main_window = dict()
         self.main_window["root"] = tk.Tk()
+        self.main_window["root"].iconbitmap(self.app_icon)
         self.main_window["root"].title('ポモドーロ・テクニックタイマー')
         self.main_window["root"].attributes("-topmost", True)
 
