@@ -1,3 +1,4 @@
+import sys
 import time
 import tkinter as tk
 from tkinter import ttk
@@ -91,12 +92,16 @@ class PomodoroTimer:
         self.mouse_y = event.y_root - self.main_window["root"].winfo_y()
 
     def on_move_motion(self, event):
-        self.main_window["root"].geometry(f"+{event.x_root - self.mouse_x}+{event.y_root - self.mouse_y}")
+        y_offset = 0
+        if sys.platform == "linux":
+            y_offset = 37
+        self.main_window["root"].geometry(f"+{event.x_root - self.mouse_x}+{event.y_root - self.mouse_y - y_offset}")
     
     def make_main_window(self):
         self.main_window = dict()
         self.main_window["root"] = tk.Tk()
-        self.main_window["root"].iconbitmap(self.app_icon)
+        if sys.platform != "linux":
+            self.main_window["root"].iconbitmap(self.app_icon)
         self.main_window["root"].title('ポモドーロ・テクニックタイマー')
         self.main_window["root"].attributes("-topmost", True)
 
